@@ -45,7 +45,7 @@ touch-action: manipulation;
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{padding:8px;border-bottom:1px solid #333;text-align:center}
 th{background:#151922}
-/* ===== 📱 MOBILE BALANCE (SAFE) ===== */
+/* ===== 📱 MOBILE BALANCE (FIX GRID OVERFLOW) ===== */
 @media (max-width: 480px) {
 
   .container{
@@ -57,22 +57,22 @@ th{background:#151922}
   }
 
   .road-wrap{
-    overflow:hidden; /* กันล้นจอแนวนอน */
+    overflow:hidden; /* กันล้นจอ 100% */
   }
 
   .road{
-    grid-template-columns:repeat(20,20px);
-    grid-template-rows:repeat(5,20px);
-    gap:3px;
+    grid-template-columns:repeat(20,18px);
+    grid-template-rows:repeat(5,18px);
+    gap:2px;
 
-    /* 🔒 แก้ล้นจอแบบปลอดภัย */
-    transform: scale(0.88);
+    /* fine tune */
+    transform: scale(0.95);
     transform-origin: top center;
   }
 
   .cell{
-    width:20px;
-    height:20px;
+    width:18px;
+    height:18px;
   }
 
   .buttons{
