@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PBT Pro By. คนหัวรวย</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+body{margin:0;background:#0e1116;font-family:Segoe UI,sans-serif;color:#eaeaea}
+.container{max-width:1100px;margin:auto;padding:24px}
+h1{text-align:center}
+
+.road-wrap{display:flex;justify-content:center;margin:16px 0}
+.road{display:grid;
+  grid-template-columns:repeat(20,24px);
+  grid-template-rows:repeat(5,24px);
+  gap:4px;
+    grid-auto-flow: column;}
+.cell{width:24px;height:24px;border-radius:4px;background:#1c2029}
+.cell.B{background:#f44336}
+.cell.P{background:#2196f3}
+.cell.T{background:#4caf50}
+
+.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.buttons.single{grid-template-columns:1fr;max-width:320px;margin:0 auto 24px}
+button{height:56px;font-size:16px;font-weight:800;border:none;border-radius:16px;cursor:pointer
+touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;}
+#bankerBtn{background:#f44336}
+#playerBtn{background:#2196f3}
+#tieBtn{background:#4caf50}
+#undoBtn{background:#9e9e9e;color:#000}
+
+.card{background:#1c2029;border-radius:14px;padding:18px;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);text-align:center}
+.value{font-size:22px;margin-top:6px}
+.recommend{text-align:center;font-size:30px;font-weight:900}
+.result{text-align:center;font-size:26px;font-weight:800}
+.correct{color:#4caf50}
+.wrong{color:#f44336}
+.warn{color:#ff9800;font-weight:800}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px;border-bottom:1px solid #333;text-align:center}
+th{background:#151922}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>🎴 PBT Pro By. คนหัวรวย</h1>
+
+<div class="road-wrap"><div id="road" class="road"></div></div>
+
+<div class="buttons">
+  <button id="bankerBtn">BANKER</button>
+  <button id="tieBtn">TIE</button>
+  <button id="playerBtn">PLAYER</button>
+</div>
+
+<div class="buttons single">
+  <button id="undoBtn">แก้ไข</button>
+</div>
+
+<div class="card grid">
+  <div>Banker<div id="b" class="value">0</div></div>
+  <div>Player<div id="p" class="value">0</div></div>
+  <div>Tie<div id="t" class="value">0</div></div>
+  <div>Total<div id="total" class="value">0</div></div>
+  <div>ชนะ<div id="win" class="value">0</div></div>
+</div>
+
+<div class="card">
+   <h3>💰 BET NEXT ROUND</h3>
+  <div id="betText" class="recommend"></div>
+<div id="wrongCount" class="result warn"></div>
+<div id="judge" class="result"></div>
+<div id="alert" class="result warn"></div>
+
+<div class="card">
+  <h3>📋 ตารางชนะ</h3>
+  <table>
+    <thead><tr><th>รอบ</th><th>ระบบ</th><th>ผล</th><th>สถานะ</th></tr></thead>
+    <tbody id="winLog"></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>⚠️ ตารางแพ้ครบ 4 ครั้ง</h3>
+  <table>
+    <thead><tr><th>รอบ</th><th>สถานะ</th></tr></thead>
+    <tbody id="loseLog"></tbody>
+  </table>
+</div>
+
+</div>
+
+<script>
+/* ===== 🔒 SAVE / LOAD STATE ===== */
+function saveState(){
+  localStorage.setItem("baccarat_pro", JSON.stringify({
+    history,
+    actions,
+    stats,
+    row,
+    col,
+    round,
+    winCount,
+    loseStreak
+  }));
+}
+
+function loadState(){
+  const d = JSON.parse(localStorage.getItem("baccarat_pro"));
+  if(!d) return;
+
+  history     = d.history;
+  actions     = d.actions;
+  stats       = d.stats;
+  row         = d.row;
+  col         = d.col;
+  round       = d.round;
+  winCount    = d.winCount;
+  loseStreak  = d.loseStreak;
+}
+document.addEventListener("DOMContentLoaded",()=>{
+
+const el=id=>document.getElementById(id);
+
+/* ===== GRID : ลงล่างก่อน ===== */
+const road=el("road");
+const ROWS=5,COLS=20;
+let row=0,col=0;
+
+for(let i=0;i<ROWS*COLS;i++){
+  const d=document.createElement("div");
+  d.className="cell";
+  road.appendChild(d);
+}
+const idx=(r,c)=>c*ROWS+r;
+
+function addToRoad(r){
+  const i=idx(row,col);
+  road.children[i].classList.add(r);
+  row++;
+  if(row===ROWS){row=0;col++}
+  return i;
+}
+
+/* ===== LOGIC : ไม่ตามน้ำ / ไม่สลับ ===== */
+let actions=[],history=[];
+let currentBet = "BANKER";
+let stats={B:0,P:0,T:0,total:0};
+let round=0,winCount=0,loseStreak=0;
+
+function calculateNext(){
+  // อิสระจริง ไม่อิงผลก่อนหน้า
+  return Math.random()<0.5 ? "BANKER" : "PLAYER";
+}
+
+function updateBet(){
+  currentBet = calculateNext();
+  el("betText").textContent = "👉 แทง " + currentBet;
+  el("betText").style.color =
+    currentBet==="BANKER" ? "#f44336" : "#2196f3";
+}
+
+function addResult(r){
+  const bet = currentBet; // ✅ ใช้ค่าที่แสดงอยู่จริง
+  round++;
+
+  const win=(bet==="BANKER"&&r==="B")||(bet==="PLAYER"&&r==="P");
+  const cell=addToRoad(r);
+
+  actions.push({r,bet,win,cell});
+  if(r!=="T") history.push(r);
+
+  if(r === "T"){
+  // Tie ไม่ได้-ไม่เสีย → ไม่กระทบสถิติแพ้ชนะ
+}else if(win){
+  winCount++;
+  loseStreak = 0;
+  el("wrongCount").textContent = "";
+}else{
+  if(r !== "T"){            // ❗ TIE ไม่นับแพ้
+    loseStreak++;
+    if(loseStreak > 12) loseStreak = 12;
+    el("wrongCount").textContent = "❌ ไม้ที่ : " + loseStreak;
+       updateBet();
+  }
+}
+
+  stats[r]++;stats.total++;
+
+  el("b").textContent=stats.B;
+  el("p").textContent=stats.P;
+  el("t").textContent=stats.T;
+  el("total").textContent=stats.total;
+  el("win").textContent=winCount;
+
+  el("judge").textContent=win?"✔ ถูก":"✖ ผิด";
+  el("judge").className="result "+(win?"correct":"wrong");
+
+  if(win){
+    winLog.innerHTML+=`<tr><td>${round}</td><td>${bet}</td><td>${r}</td><td class="correct">✔</td></tr>`;
+  }
+  if(loseStreak===4){
+    loseLog.innerHTML+=`<tr><td>${round}</td><td class="wrong">แพ้ครบ 4</td></tr>`;
+    el("alert").textContent="⚠️ แพ้ครบ 4 ครั้งติด";
+  }else el("alert").textContent="";
+
+  recommendHistory.push(bet);
+  updateBet();
+  saveState(); // 🔒 บันทึกทุกครั้งที่กด
+}
+
+function undo(){
+  const last=actions.pop();
+  if(!last) return;
+
+  road.children[last.cell].className="cell";
+  col=Math.floor(last.cell/ROWS);
+  row=last.cell%ROWS;
+
+  round--;
+  stats[last.r]--;stats.total--;
+  if(last.r!=="T") history.pop();
+  if(last.win) winCount--;
+
+  el("b").textContent=stats.B;
+  el("p").textContent=stats.P;
+  el("t").textContent=stats.T;
+  el("total").textContent=stats.total;
+  el("win").textContent=winCount;
+
+  el("judge").textContent="↩ ย้อนกลับ 1 ไม้";
+  el("judge").className="result warn";
+  updateBet();
+  saveState(); // 🔒 บันทึกหลังย้อน
+}
+
+bankerBtn.addEventListener("click",()=>addResult("B"),{passive:true});
+playerBtn.addEventListener("click",()=>addResult("P"),{passive:true});
+tieBtn.addEventListener("click",()=>addResult("T"),{passive:true});
+undoBtn.addEventListener("click",undo,{passive:true});
+
+// ===== 🔐 PWA : Service Worker Register (SAFE) =====
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(reg => {
+        console.log("Service Worker registered:", reg.scope);
+      })
+      .catch(err => {
+        console.error("Service Worker registration failed:", err);
+      });
+  });
+}
+loadState();
+updateBet();
+});
+</script>
+</body>
+</html>
