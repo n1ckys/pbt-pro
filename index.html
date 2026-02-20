@@ -56,10 +56,18 @@ th{background:#151922}
     font-size:20px;
   }
 
+  .road-wrap{
+    overflow:hidden; /* กันล้นจอแนวนอน */
+  }
+
   .road{
     grid-template-columns:repeat(20,20px);
     grid-template-rows:repeat(5,20px);
     gap:3px;
+
+    /* 🔒 แก้ล้นจอแบบปลอดภัย */
+    transform: scale(0.88);
+    transform-origin: top center;
   }
 
   .cell{
