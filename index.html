@@ -45,6 +45,50 @@ touch-action: manipulation;
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{padding:8px;border-bottom:1px solid #333;text-align:center}
 th{background:#151922}
+/* ===== 📱 MOBILE BALANCE (SAFE) ===== */
+@media (max-width: 480px) {
+
+  .container{
+    padding:12px;
+  }
+
+  h1{
+    font-size:20px;
+  }
+
+  .road{
+    grid-template-columns:repeat(20,20px);
+    grid-template-rows:repeat(5,20px);
+    gap:3px;
+  }
+
+  .cell{
+    width:20px;
+    height:20px;
+  }
+
+  .buttons{
+    gap:10px;
+  }
+
+  button{
+    height:52px;
+    font-size:15px;
+    border-radius:14px;
+  }
+
+  .recommend{
+    font-size:24px;
+  }
+
+  .result{
+    font-size:20px;
+  }
+
+  table{
+    font-size:12px;
+  }
+}
 </style>
 </head>
 
