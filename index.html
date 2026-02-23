@@ -31,7 +31,7 @@ h1{text-align:center}
 }
 .road{
   display:grid;
-  grid-template-columns:repeat(15,24px);
+  grid-template-columns:repeat(14,24px);
   grid-template-rows:repeat(6,24px);
   gap:4px;
   grid-auto-flow:column;
@@ -165,7 +165,7 @@ th{background:#151922}
 document.addEventListener("DOMContentLoaded",()=>{
 const el=id=>document.getElementById(id);
 const road=el("road");
-const ROWS=6,COLS=15;
+const ROWS=6,COLS=14;
 let row=0,col=0;
 
 for(let i=0;i<ROWS*COLS;i++){
