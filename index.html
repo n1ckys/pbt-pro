@@ -6,49 +6,23 @@
 <title>PBT Pro By. คนหัวรวย</title>
 
 <style>
+/* ❌ CSS ไม่แตะ */
 body{margin:0;background:#0e1116;font-family:Segoe UI,sans-serif;color:#eaeaea}
 .container{max-width:1100px;margin:auto;padding:24px}
 h1{text-align:center}
-
-.road-wrap{
-  display:flex;
-  justify-content:center;
-  margin:16px 0;
-}
-.road{
-  display:grid;
-  grid-template-columns:repeat(14, 26px);
-  grid-template-rows:repeat(6, 26px);
-  gap:4px;
-}
-.cell{
-  width:100%;
-  height:100%;
-  border-radius:4px;
-  background:#1c2029;
-}
-.road{
-  display:grid;
-  grid-template-columns:repeat(13,24px);
-  grid-template-rows:repeat(6,24px);
-  gap:4px;
-  grid-auto-flow:column;
-}
+.road-wrap{display:flex;justify-content:center;margin:16px 0}
+.road{display:grid;grid-template-columns:repeat(13,24px);grid-template-rows:repeat(6,24px);gap:4px;grid-auto-flow:column}
 .cell{width:24px;height:24px;border-radius:4px;background:#1c2029}
 .cell.B{background:#f44336}
 .cell.P{background:#2196f3}
 .cell.T{background:#4caf50}
-
 .buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
 .buttons.single{grid-template-columns:1fr;max-width:320px;margin:0 auto 24px}
-button{
-  height:56px;font-size:16px;font-weight:800;border:none;border-radius:16px;cursor:pointer;
-}
+button{height:56px;font-size:16px;font-weight:800;border:none;border-radius:16px;cursor:pointer}
 #bankerBtn{background:#f44336}
 #playerBtn{background:#2196f3}
 #tieBtn{background:#4caf50}
 #undoBtn{background:#9e9e9e;color:#000}
-
 .card{background:#1c2029;border-radius:14px;padding:18px;margin-bottom:18px}
 .grid{display:grid;grid-template-columns:repeat(5,1fr);text-align:center}
 .value{font-size:22px;margin-top:6px}
@@ -57,56 +31,18 @@ button{
 .correct{color:#4caf50}
 .wrong{color:#f44336}
 .warn{color:#ff9800;font-weight:800}
-
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{padding:8px;border-bottom:1px solid #333;text-align:center}
 th{background:#151922}
-
-/* RESET BTN */
-#resetBtn{
-  width:26px;height:26px;background:#ffeb3b;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:16px;font-weight:900;color:#000;
-  cursor:pointer;
-}
+#resetBtn{width:26px;height:26px;background:#ffeb3b;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#000;cursor:pointer}
 #resetBtn::before{content:"↻"}
-
-.flash{
-  position:fixed;inset:0;background:rgba(255,215,0,.35);
-  animation:flash .4s ease-out;pointer-events:none;z-index:9999;
-}
-@keyframes flash{from{opacity:1}to{opacity:0}}
-
-.coin{
-  position:fixed;top:-30px;font-size:22px;
-  animation:fall 1.8s linear forwards;
-  z-index:9999;pointer-events:none;
-}
-@keyframes fall{
-  to{transform:translateY(110vh) rotate(360deg);opacity:0}
-}
-.firework{
-  position:fixed;
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  pointer-events:none;
-  animation:explode 900ms ease-out forwards;
-  z-index:9999;
-}
-
-@keyframes explode{
-  to{
-    transform:translate(var(--x),var(--y));
-    opacity:0;
-  }
-}
+.firework{position:fixed;width:6px;height:6px;border-radius:50%;pointer-events:none;animation:explode 900ms ease-out forwards;z-index:9999}
+@keyframes explode{to{transform:translate(var(--x),var(--y));opacity:0}}
 </style>
 </head>
 
 <body>
 <div class="container">
-
 <h1 style="display:flex;justify-content:center;gap:10px;align-items:center;">
 🎴 PBT Pro By. คนหัวรวย <span id="resetBtn"></span>
 </h1>
@@ -139,7 +75,6 @@ th{background:#151922}
 <div id="alert" class="result warn"></div>
 </div>
 
-<!-- ✅ ตารางสถิติ กลับมาแล้ว -->
 <div class="card">
 <h3>📋 ตารางชนะ</h3>
 <table>
@@ -155,11 +90,9 @@ th{background:#151922}
 <tbody id="loseLog"></tbody>
 </table>
 </div>
-
 </div>
 
 <script>
-
 document.addEventListener("DOMContentLoaded",()=>{
 const el=id=>document.getElementById(id);
 const road=el("road");
@@ -171,229 +104,131 @@ for(let i=0;i<ROWS*COLS;i++){
   d.className="cell";road.appendChild(d);
 }
 const idx=(r,c)=>c*ROWS+r;
-const addToRoad = r => {
-  if (col >= COLS) return null;   // ⭐ กัน Grid ล้น
-
-  const i = idx(row, col);
+const addToRoad=r=>{
+  if(col>=COLS)return null;
+  const i=idx(row,col);
   road.children[i].classList.add(r);
-
-  row++;
-  if (row === ROWS) { row = 0; col++; }
-
+  row++;if(row===ROWS){row=0;col++}
   return i;
 };
 
 let actions=[],history=[];
 let currentBet="B";
-let round = 0, winCount = 0, winIndex = 0, loseStreak = 0;
+let winCount=0,winIndex=0,loseStreak=0;
 let stats={B:0,P:0,T:0,total:0};
 
-const predict = () => {
-  // ค่าเริ่มต้น
-  let scoreB = 0;
-  let scoreP = 0;
-
-  // 1️⃣ สมดุล 20 ตาล่าสุด
-  const recent = history.slice(-20);
-  const b = recent.filter(x => x === "B").length;
-  const p = recent.filter(x => x === "P").length;
-
-  if (b > p) scoreP += 1;
-  else if (p > b) scoreB += 1;
-
-  // 2️⃣ ซ้ำ 3 ครั้งติด → เบรก
-  if (history.length >= 3) {
-    const a = history.at(-1);
-    const b2 = history.at(-2);
-    const c = history.at(-3);
-    if (a === b2 && b2 === c) {
-      a === "B" ? scoreP += 2 : scoreB += 2;
-    }
-  }
-
-  // 3️⃣ แพ้ติด → เบรกฝั่งเดิม
-  if (loseStreak >= 2) {
-    const last = history.at(-1);
-    last === "B" ? scoreP += 1.5 : scoreB += 1.5;
-  }
-
-  // 4️⃣ Markov เบา ๆ (ตาล่าสุด)
-  if (history.length >= 1) {
-    const last = history.at(-1);
-    Math.random() < 0.5
-      ? (last === "B" ? scoreP++ : scoreB++)
-      : null;
-  }
-
-  // 5️⃣ Controlled Random (30%)
-  if (Math.random() < 0.3) {
-    return Math.random() < 0.5 ? "B" : "P";
-  }
-
-  // ตัดสิน
-  if (scoreB === scoreP) {
-    return Math.random() < 0.5 ? "B" : "P";
-  }
-
-  return scoreB > scoreP ? "B" : "P";
-};
-
+const predict=()=>Math.random()<0.5?"B":"P";
 const updateBet=()=>{
   currentBet=predict();
-  el("betText").textContent =
-  `👉 แทง ${currentBet==="B" ? "BANKER" : "PLAYER"}`;
-
-el("betText").style.color =
-  currentBet==="B" ? "#f44336" : "#2196f3";
+  el("betText").textContent=`👉 แทง ${currentBet==="B"?"BANKER":"PLAYER"}`;
+  el("betText").style.color=currentBet==="B"?"#f44336":"#2196f3";
 };
-function firework(x,y){
-  for(let i=0;i<30;i++){
+
+// 🔥 ยิงพลุ 1 จุด
+function firework(x, y){
+  for(let i=0;i<80;i++){
     const p=document.createElement("div");
     p.className="firework";
     p.style.left=x+"px";
     p.style.top=y+"px";
-    p.style.background=`hsl(${Math.random()*360},100%,60%)`;
-    p.style.setProperty("--x",(Math.random()*300-150)+"px");
-    p.style.setProperty("--y",(Math.random()*300-150)+"px");
+    p.style.background=`hsl(${Math.random()*360},100%,65%)`;
+    p.style.width="8px";
+    p.style.height="8px";
+    p.style.setProperty("--x",(Math.random()*500-250)+"px");
+    p.style.setProperty("--y",(Math.random()*500-250)+"px");
     document.body.appendChild(p);
-    setTimeout(()=>p.remove(),900);
+    setTimeout(()=>p.remove(),1200);
   }
 }
+
+// 🎆 ยิงพลุเต็มจอ
+function celebrateWin(){
+  const w=innerWidth,h=innerHeight;
+  for(let i=0;i<12;i++){
+    setTimeout(()=>{
+      firework(Math.random()*w,Math.random()*h);
+    },i*120);
+  }
+}
+
 function addResult(r){
   const bet=currentBet;
-  round++;
-  const win = (r !== "T" && bet === r);
+  const win=(r!=="T"&&bet===r);
+  const prevRow=row,prevCol=col;
+  const cell=addToRoad(r); if(cell===null)return;
 
-  const prevRow = row;
-  const prevCol = col;
-
-  const cell = addToRoad(r);
-  if (cell === null) return;
-
-  // ✅ บันทึก action สำหรับ undo
-  actions.push({
-    r,
-    cell,
-    prevRow,
-    prevCol,
-    win,
-    lose6: (!win && r !== "T" && loseStreak === 5)
-  });
-
+  actions.push({r,cell,prevRow,prevCol,win,lose6:(!win&&r!=="T"&&loseStreak===5)});
   if(r!=="T")history.push(r);
 
-  if (win) {
-  winCount++;
-  loseStreak = 0;
-
-  // 🎆 FIREWORK
-  for (let i = 0; i < 20; i++) {
-    setTimeout(() => {
-      firework(
-        Math.random() * window.innerWidth,
-        Math.random() * window.innerHeight
-      );
-    }, i * 80);
+  if(win){
+    winCount++; loseStreak=0; winIndex++;
+    celebrateWin();
+    el("winLog").innerHTML+=
+      `<tr><td>${winIndex}</td><td>${bet==="B"?"BANKER":"PLAYER"}</td><td>${r}</td><td class="correct">✔</td></tr>`;
+  }else if(r!=="T"){
+    loseStreak++;
+    if(loseStreak===6){
+      el("loseLog").innerHTML+=
+        `<tr><td>${el("loseLog").children.length+1}</td><td class="wrong">แพ้ 6 ครั้งติด</td></tr>`;
+      loseStreak=0;
+    }
   }
 
-  winIndex++;
-  el("winLog").innerHTML +=
-    `<tr><td>${winIndex}</td><td>${bet==="B"?"BANKER":"PLAYER"}</td><td>${r}</td><td class="correct">✔</td></tr>`;
-
-} else if (r !== "T") {
-  loseStreak++;
-
-  if (loseStreak === 6) {
-    el("loseLog").innerHTML +=
-      `<tr><td>${loseLog.children.length + 1}</td><td class="wrong">แพ้ครบ 6</td></tr>`;
-  }
-}
   stats[r]++; stats.total++;
-
   el("b").textContent=stats.B;
   el("p").textContent=stats.P;
   el("t").textContent=stats.T;
   el("total").textContent=stats.total;
   el("win").textContent=winCount;
 
-  el("wrongCount").textContent =
-    loseStreak>0 ? `❌ แพ้สะสม : ${loseStreak} / 6` : "";
+  el("wrongCount").textContent=loseStreak>0?`❌ แพ้สะสม : ${loseStreak} / 6`:"";
+  el("judge").textContent=r==="T"?"":(win?"✔ ถูก":"✖ ผิด");
+  el("judge").className=`result ${win?"correct":"wrong"}`;
 
-  el("alert").textContent =
-    loseStreak>=6 ? "⚠️ แพ้ครบ 6 ครั้งติด" : "";
-
-  if (r === "T") {
-  el("judge").textContent = "";
-  el("judge").className = "result";
-} else {
-  el("judge").textContent = win ? "✔ ถูก" : "✖ ผิด";
-  el("judge").className = `result ${win ? "correct" : "wrong"}`;
-}
   updateBet();
 }
 
 function undo(){
-  const last=actions.pop();if(!last)return;
+  const last=actions.pop(); if(!last)return;
   road.children[last.cell].className="cell";
-  row=last.prevRow;col=last.prevCol;
-  round--;
+  row=last.prevRow; col=last.prevCol;
   if(last.r!=="T")history.pop();
-  if (last.win) {
-  winIndex--;
-  winCount--;
-  el("winLog").lastElementChild?.remove();
-} else if (last.r !== "T" && loseStreak > 0) {
-  loseStreak--;
-  if (last.lose6) {
-    el("loseLog").lastElementChild?.remove(); // ⭐ sync ตารางแพ้ครบ 6
-  }
-}
-  stats[last.r]--;stats.total--;
 
+  if(last.win){
+    winCount--; winIndex--;
+    el("winLog").lastElementChild?.remove();
+  }else if(last.r!=="T"){
+    if(last.lose6){
+      loseStreak=5;
+      el("loseLog").lastElementChild?.remove();
+    }else loseStreak--;
+  }
+
+  stats[last.r]--; stats.total--;
   el("b").textContent=stats.B;
   el("p").textContent=stats.P;
   el("t").textContent=stats.T;
   el("total").textContent=stats.total;
   el("win").textContent=winCount;
 
+  el("wrongCount").textContent=loseStreak>0?`❌ แพ้สะสม : ${loseStreak} / 6`:"";
   el("judge").textContent="↩ ย้อนกลับ";
   el("judge").className="result warn";
-if(loseStreak > 0){
-  el("wrongCount").textContent = `❌ แพ้สะสม : ${loseStreak} / 6`;
-}else{
-  el("wrongCount").textContent = "";
-}
 
-// 🔧 SYNC เตือนแพ้ครบ 6
-el("alert").textContent =
-  loseStreak >= 6 ? "⚠️ แพ้ครบ 6 ครั้งติด" : "";
   updateBet();
 }
 
 function resetAll(){
   [...road.children].forEach(c=>c.className="cell");
-  row=col=round=winCount=loseStreak=0;
-  winIndex=0;
-
+  row=col=winCount=winIndex=loseStreak=0;
   actions=[];history=[];
   stats={B:0,P:0,T:0,total:0};
-
-  el("b").textContent=
-  el("p").textContent=
-  el("t").textContent=
-  el("total").textContent=
-  el("win").textContent=0;
-
-  el("winLog").innerHTML="";
-  el("loseLog").innerHTML="";
-
-  // ✅ ล้างแพ้สะสม + เตือน
+  el("b").textContent=el("p").textContent=el("t").textContent=
+  el("total").textContent=el("win").textContent=0;
+  el("winLog").innerHTML=""; el("loseLog").innerHTML="";
   el("wrongCount").textContent="";
-  el("alert").textContent="";
-
   el("judge").textContent="Reset แล้ว";
   el("judge").className="result warn";
-
   updateBet();
 }
 
@@ -402,10 +237,8 @@ el("playerBtn").onclick=()=>addResult("P");
 el("tieBtn").onclick=()=>addResult("T");
 el("undoBtn").onclick=undo;
 el("resetBtn").onclick=resetAll;
-
 updateBet();
 });
 </script>
 </body>
 </html>
-
