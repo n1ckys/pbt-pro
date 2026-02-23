@@ -168,21 +168,67 @@ const addToRoad = r => {
 };
 
 let actions=[],history=[];
-let currentBet="BANKER";
+let currentBet="B";
 let round = 0, winCount = 0, winIndex = 0, loseStreak = 0;
 let stats={B:0,P:0,T:0,total:0};
 
-const predict=()=>{
-  if(history.length<5)return Math.random()<.5?"BANKER":"PLAYER";
-  let b=0,p=0;
-  history.slice(-20).forEach(x=>x==="B"?b++:x==="P"&&p++);
-  return b>=p?"BANKER":"PLAYER";
+const predict = () => {
+  // ค่าเริ่มต้น
+  let scoreB = 0;
+  let scoreP = 0;
+
+  // 1️⃣ สมดุล 20 ตาล่าสุด
+  const recent = history.slice(-20);
+  const b = recent.filter(x => x === "B").length;
+  const p = recent.filter(x => x === "P").length;
+
+  if (b > p) scoreP += 1;
+  else if (p > b) scoreB += 1;
+
+  // 2️⃣ ซ้ำ 3 ครั้งติด → เบรก
+  if (history.length >= 3) {
+    const a = history.at(-1);
+    const b2 = history.at(-2);
+    const c = history.at(-3);
+    if (a === b2 && b2 === c) {
+      a === "B" ? scoreP += 2 : scoreB += 2;
+    }
+  }
+
+  // 3️⃣ แพ้ติด → เบรกฝั่งเดิม
+  if (loseStreak >= 2) {
+    const last = history.at(-1);
+    last === "B" ? scoreP += 1.5 : scoreB += 1.5;
+  }
+
+  // 4️⃣ Markov เบา ๆ (ตาล่าสุด)
+  if (history.length >= 1) {
+    const last = history.at(-1);
+    Math.random() < 0.5
+      ? (last === "B" ? scoreP++ : scoreB++)
+      : null;
+  }
+
+  // 5️⃣ Controlled Random (30%)
+  if (Math.random() < 0.3) {
+    return Math.random() < 0.5 ? "B" : "P";
+  }
+
+  // ตัดสิน
+  if (scoreB === scoreP) {
+    return Math.random() < 0.5 ? "B" : "P";
+  }
+
+  return scoreB > scoreP ? "B" : "P";
 };
 
 const updateBet=()=>{
   currentBet=predict();
-  el("betText").textContent=`👉 แทง ${currentBet}`;
-  el("betText").style.color=currentBet==="BANKER"?"#f44336":"#2196f3";
+  el("betText").textContent =
+  `👉 แทง ${currentBet==="B" ? "BANKER" : "PLAYER"}`;
+
+el("betText").style.color =
+  currentBet==="B" ? "#f44336" : "#2196f3";
 };
 function firework(x,y){
   for(let i=0;i<30;i++){
@@ -200,7 +246,7 @@ function firework(x,y){
 function addResult(r){
   const bet=currentBet;
   round++;
-  const win=(bet==="BANKER"&&r==="B")||(bet==="PLAYER"&&r==="P");
+  const win = (bet === r);
 
   const prevRow = row;
   const prevCol = col;
@@ -236,7 +282,7 @@ function addResult(r){
 
   winIndex++;
   el("winLog").innerHTML +=
-    `<tr><td>${winIndex}</td><td>${bet}</td><td>${r}</td><td class="correct">✔</td></tr>`;
+    `<tr><td>${winIndex}</td><td>${bet==="B"?"BANKER":"PLAYER"}</td><td>${r}</td><td class="correct">✔</td></tr>`;
 
 } else if (r !== "T") {
   loseStreak++;
