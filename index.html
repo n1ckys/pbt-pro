@@ -17,15 +17,16 @@ h1{text-align:center}
   overflow-x:auto;          /* ✅ กันล้นจอ */
 }
 
-@media (max-width: 768px){
+@media (max-width: 480px){
   .road{
-    grid-template-columns:repeat(20,18px);
-    grid-template-rows:repeat(6,18px);
-    gap:3px;
+    grid-template-columns:repeat(20,14px);
+    grid-template-rows:repeat(6,14px);
+    gap:2px;
   }
   .cell{
-    width:18px;
-    height:18px;
+    width:14px;
+    height:14px;
+    font-size:10px;
   }
 }
 .road{
