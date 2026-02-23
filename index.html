@@ -141,7 +141,7 @@ th{background:#151922}
 </div>
 
 <div class="card">
-  <h3>⚠️ ตารางแพ้ครบ 4 ครั้ง</h3>
+  <h3>⚠️ ตารางแพ้ครบ 6 ครั้ง</h3>
   <table>
     <thead><tr><th>รอบ</th><th>สถานะ</th></tr></thead>
     <tbody id="loseLog"></tbody>
@@ -259,10 +259,10 @@ function addResult(r){
   if(win){
     winLog.innerHTML+=`<tr><td>${round}</td><td>${bet}</td><td>${r}</td><td class="correct">✔</td></tr>`;
   }
-  if(loseStreak===4){
-    loseLog.innerHTML+=`<tr><td>${round}</td><td class="wrong">แพ้ครบ 4</td></tr>`;
-    el("alert").textContent="⚠️ แพ้ครบ 4 ครั้งติด";
-  }else el("alert").textContent="";
+  if(loseStreak===6){
+  loseLog.innerHTML+=`<tr><td>${round}</td><td class="wrong">แพ้ครบ 6</td></tr>`;
+  el("alert").textContent="⚠️ แพ้ครบ 6 ครั้งติด";
+}else el("alert").textContent="";
 
   recommendHistory.push(bet);
   updateBet();
@@ -299,18 +299,12 @@ playerBtn.addEventListener("click",()=>addResult("P"),{passive:true});
 tieBtn.addEventListener("click",()=>addResult("T"),{passive:true});
 undoBtn.addEventListener("click",undo,{passive:true});
 
-// ===== 🔐 PWA : Service Worker Register (SAFE) =====
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js")
-      .then(reg => {
-        console.log("Service Worker registered:", reg.scope);
-      })
-      .catch(err => {
-        console.error("Service Worker registration failed:", err);
-      });
-  });
-}
+// ❌ ปิด Service Worker ชั่วคราว เพื่อให้โค้ดใหม่ทำงาน
+// if ("serviceWorker" in navigator) {
+//   window.addEventListener("load", () => {
+//     navigator.serviceWorker.register("./service-worker.js");
+//   });
+// }
 loadState();
 updateBet();
 });
