@@ -117,7 +117,34 @@ let currentBet="B";
 let winCount=0,winIndex=0,loseStreak=0;
 let stats={B:0,P:0,T:0,total:0};
 
-const predict=()=>Math.random()<0.5?"B":"P";
+const predict = () => {
+  const recent = history.slice(-6);
+  if (recent.length === 0) {
+    return Math.random() < 0.5 ? "B" : "P";
+  }
+
+  let b = 0, p = 0;
+  recent.forEach(r => r === "B" ? b++ : p++);
+
+  // คำนวณน้ำหนักจากสถิติ
+  let weightB = b / recent.length;
+  let weightP = p / recent.length;
+
+  // ถ้าแพ้ติด → ลดน้ำหนักฝั่งที่เพิ่งออก
+  if (loseStreak >= 2) {
+    const last = recent[recent.length - 1];
+    if (last === "B") weightB *= 0.5;
+    else weightP *= 0.5;
+  }
+
+  // normalize
+  const sum = weightB + weightP;
+  weightB /= sum;
+  weightP /= sum;
+
+  // สุ่มแบบมีน้ำหนัก
+  return Math.random() < weightB ? "B" : "P";
+};
 const updateBet=()=>{
   currentBet=predict();
   el("betText").textContent=`👉 แทง ${currentBet==="B"?"BANKER":"PLAYER"}`;
